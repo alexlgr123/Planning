@@ -38,11 +38,11 @@ class TeamScheduler:
             raise ValueError("At least one team member is required")
 
         self.members = list(members)
+        if len(self.members) != len({member.name for member in self.members}):
+            raise ValueError("Member names must be unique")
+
         self._hours_by_member = {member.name: member.weekly_hours for member in members}
         self._rules: List[Rule] = list(rules or [])
-
-        if len(self._hours_by_member) != len(self.members):
-            raise ValueError("Member names must be unique")
 
         if any(hours <= 0 for hours in self._hours_by_member.values()):
             raise ValueError("Weekly hours must be greater than zero")

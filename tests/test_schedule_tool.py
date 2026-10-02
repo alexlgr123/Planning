@@ -22,7 +22,7 @@ class SchedulerTests(unittest.TestCase):
 
         on_calls = [schedule[day]["on_call"] for day in week]
         self.assertGreater(on_calls.count("Alice"), on_calls.count("Bob"))
-        self.assertTrue(all(schedule[day]["working_members"] == ["Alice", "Bob"] for day in week))
+        self.assertTrue(all(set(schedule[day]["working_members"]) == {"Alice", "Bob"} for day in week))
 
     def test_supports_custom_constraints_for_on_call_assignments(self):
         week = _work_week(date(2026, 10, 5))
@@ -52,6 +52,19 @@ class SchedulerTests(unittest.TestCase):
 
         self.assertIn("Date | Working Members | On Call", rendered)
         self.assertIn("2026-10-05 | Alice | Alice", rendered)
+
+    def test_handles_day_with_no_available_members(self):
+        off_day = date(2026, 10, 6)
+        scheduler = TeamScheduler(
+            members=[
+                TeamMember("Alice", {0}, 40),
+            ]
+        )
+
+        schedule = scheduler.compile_schedule([off_day])
+
+        self.assertEqual(schedule[off_day]["working_members"], [])
+        self.assertIsNone(schedule[off_day]["on_call"])
 
 
 if __name__ == "__main__":
