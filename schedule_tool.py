@@ -57,9 +57,9 @@ class TeamScheduler:
         for day in sorted(days):
             available = [member.name for member in self.members if member.works_on(day)]
             context: RuleContext = {
-                "available": available,
-                "assignments_count": assignments_count,
-                "hours_by_member": self._hours_by_member,
+                "available": list(available),
+                "assignments_count": dict(assignments_count),
+                "hours_by_member": dict(self._hours_by_member),
             }
             on_call = self._select_on_call(day, available, assignments_count, context)
             if on_call is not None:
@@ -99,6 +99,7 @@ class TeamScheduler:
 
 
 def display_schedule(schedule: Mapping[date, ScheduleEntry]) -> str:
+    """Return the master schedule as a markdown table string."""
     rows = ["Date | Working Members | On Call", "--- | --- | ---"]
     for day in sorted(schedule):
         entry = schedule[day]
