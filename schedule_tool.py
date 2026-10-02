@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Callable, Dict, FrozenSet, Iterable, List, Mapping, Optional, Sequence, TypedDict
+from typing import AbstractSet, Callable, Dict, FrozenSet, Iterable, List, Mapping, Optional, Sequence, TypedDict
 
 
 class RuleContext(TypedDict):
@@ -24,7 +24,7 @@ Rule = Callable[[str, date, RuleContext], bool]
 @dataclass(frozen=True)
 class TeamMember:
     name: str
-    working_days: FrozenSet[int]
+    working_days: AbstractSet[int]
     weekly_hours: float
 
     def __post_init__(self) -> None:
@@ -106,6 +106,6 @@ def display_schedule(schedule: Mapping[date, ScheduleEntry]) -> str:
     for day in sorted(schedule):
         entry = schedule[day]
         members = ", ".join(entry["working_members"]) if entry["working_members"] else "-"
-        on_call = entry["on_call"] if entry["on_call"] else "-"
+        on_call = entry["on_call"] if entry["on_call"] is not None else "-"
         rows.append(f"{day.isoformat()} | {members} | {on_call}")
     return "\n".join(rows)
