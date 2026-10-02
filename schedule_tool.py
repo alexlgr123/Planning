@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import AbstractSet, Callable, Dict, FrozenSet, Iterable, List, Mapping, Optional, Sequence, TypedDict
+from typing import AbstractSet, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, TypedDict
 
 
 class RuleContext(TypedDict):
@@ -39,10 +39,10 @@ class TeamScheduler:
         if not members:
             raise ValueError("At least one team member is required")
 
-        self.members = list(members)
-        if len(self.members) != len({member.name for member in self.members}):
+        if len(members) != len({member.name for member in members}):
             raise ValueError("Member names must be unique")
 
+        self.members = list(members)
         self._hours_by_member = {member.name: member.weekly_hours for member in members}
         self._rules: List[Rule] = list(rules or [])
 
