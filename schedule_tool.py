@@ -2,17 +2,31 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set
+from typing import Callable, Dict, FrozenSet, Iterable, List, Mapping, Optional, Sequence, TypedDict
 
 
-Rule = Callable[[str, date, Mapping[str, object]], bool]
+class RuleContext(TypedDict):
+    available: List[str]
+    assignments_count: Dict[str, int]
+    hours_by_member: Dict[str, float]
+
+
+class ScheduleEntry(TypedDict):
+    working_members: List[str]
+    on_call: Optional[str]
+
+
+Rule = Callable[[str, date, RuleContext], bool]
 
 
 @dataclass(frozen=True)
 class TeamMember:
     name: str
-    working_days: Set[int]
+    working_days: FrozenSet[int]
     weekly_hours: float
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "working_days", frozenset(self.working_days))
 
     def works_on(self, day: date) -> bool:
         return day.weekday() in self.working_days
@@ -36,13 +50,13 @@ class TeamScheduler:
     def add_rule(self, rule: Rule) -> None:
         self._rules.append(rule)
 
-    def compile_schedule(self, days: Sequence[date]) -> Dict[date, Dict[str, object]]:
+    def compile_schedule(self, days: Sequence[date]) -> Dict[date, ScheduleEntry]:
         assignments_count = {member.name: 0 for member in self.members}
-        compiled: Dict[date, Dict[str, object]] = {}
+        compiled: Dict[date, ScheduleEntry] = {}
 
         for day in sorted(days):
             available = [member.name for member in self.members if member.works_on(day)]
-            context: Dict[str, object] = {
+            context: RuleContext = {
                 "available": available,
                 "assignments_count": assignments_count,
                 "hours_by_member": self._hours_by_member,
@@ -63,7 +77,7 @@ class TeamScheduler:
         day: date,
         available: Sequence[str],
         assignments_count: Mapping[str, int],
-        context: Mapping[str, object],
+        context: RuleContext,
     ) -> Optional[str]:
         allowed = [
             candidate
@@ -84,7 +98,7 @@ class TeamScheduler:
         )
 
 
-def display_schedule(schedule: Mapping[date, Mapping[str, object]]) -> str:
+def display_schedule(schedule: Mapping[date, ScheduleEntry]) -> str:
     rows = ["Date | Working Members | On Call", "--- | --- | ---"]
     for day in sorted(schedule):
         entry = schedule[day]
