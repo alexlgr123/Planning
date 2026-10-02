@@ -6,6 +6,8 @@ from typing import Callable, Dict, FrozenSet, Iterable, List, Mapping, Optional,
 
 
 class RuleContext(TypedDict):
+    """Context passed to custom on-call rules."""
+
     available: List[str]
     assignments_count: Dict[str, int]
     hours_by_member: Dict[str, float]
@@ -92,6 +94,7 @@ class TeamScheduler:
             key=lambda candidate: (
                 assignments_count[candidate] / self._hours_by_member[candidate],
                 assignments_count[candidate],
+                -self._hours_by_member[candidate],
                 candidate,
             ),
         )
